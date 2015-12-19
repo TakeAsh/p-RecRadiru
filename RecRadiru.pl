@@ -14,9 +14,7 @@ use Time::Piece;
 
 $YAML::Syck::ImplicitUnicode = 1;
 
-my $charset = "utf-8";
-
-#my $charset = "CP932";
+my $charset = "utf-8";    # utf-8, CP932
 
 binmode( STDIN,  ":encoding($charset)" );
 binmode( STDOUT, ":encoding($charset)" );
@@ -61,17 +59,18 @@ my $t        = localtime;
 my $area     = $argv[0];
 my $channel  = $argv[1];
 my $duration = $argv[2];
-my $title    = ( $argv[3] || "${area}_${channel}" ) . '_' . $t->ymd('') . '_' . $t->hms('');
+my $title    = $argv[3] || "${area}_${channel}";
 my $outdir   = $argv[4] || $config->{'SavePath'} || $ENV{'HOME'} || ".";
 if ( $duration <= 0 || !grep( /^$area$/, @areas ) || !grep( /^$channel$/, @channels ) ) {
     die($helpMessage);
 }
-my $cmd = sprintf(
+my $postfix = $t->ymd('') . '_' . $t->hms('');
+my $outfile = "${outdir}/${title}_${postfix}.m4a";
+my $cmd     = sprintf(
     '%s --rtmp %s --swfVfy %s --live --stop %d -o "%s"',
     $config->{'RtmpDumpPath'},
     $streamUrl->{$area}{$channel},
-    $config->{'SwfVfy'}, $duration * 60 + $config->{'ExtendSeconds'},
-    "${outdir}/${title}.m4a"
+    $config->{'SwfVfy'}, $duration * 60 + $config->{'ExtendSeconds'}, $outfile
 );
 system($cmd);
 my $exitCode = $? >> 8;
