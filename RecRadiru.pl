@@ -66,7 +66,6 @@ my $outdir   = $argv[4] || $config->{'SavePath'} || $ENV{'HOME'} || ".";
 if ( $duration <= 0 || !grep( /^$area$/, @areas ) || !grep( /^$channel$/, @channels ) ) {
     die($helpMessage);
 }
-my ( $rtmp, $playpath ) = split( /\/live\//, $streamUrl->{$area}{$channel} );
 my $cmd = sprintf(
     '%s --rtmp %s --swfVfy %s --live --stop %d -o "%s"',
     $config->{'RtmpDumpPath'},
