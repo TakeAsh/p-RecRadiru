@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # Record NHK Net Radio らじる★らじる
-# usage: RecRajiru.pl <area> <channel> <duration> [<title>] [<outdir>]
+# usage: RecRadiru.pl <area> <channel> <duration> [<title>] [<outdir>]
 
 use strict;
 use warnings;
