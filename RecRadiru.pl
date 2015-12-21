@@ -65,17 +65,36 @@ if ( $duration <= 0 || !grep( /^$area$/, @areas ) || !grep( /^$channel$/, @chann
     die($helpMessage);
 }
 my $postfix = $t->ymd('') . '_' . $t->hms('');
+my $tmpfile = "${outdir}/.${title}_${postfix}.m4a";
 my $outfile = "${outdir}/${title}_${postfix}.m4a";
-my $cmd     = sprintf(
+
+my $rtmpDumpCmd = sprintf(
     '"%s" --rtmp %s --swfVfy %s --live --stop %d -o "%s"',
     $config->{'RtmpDumpPath'},
     $streamUrl->{$area}{$channel},
-    $config->{'SwfVfy'}, $duration * 60 + $config->{'ExtendSeconds'}, $outfile
+    $config->{'SwfVfy'}, $duration * 60 + $config->{'ExtendSeconds'}, $tmpfile
 );
-system( encode( $charset, $cmd ) );
+system( encode( $charset, $rtmpDumpCmd ) );
 my $exitCode = $? >> 8;
 print $exitCode == 0
     ? "Success\n"
     : "Failed: $exitCode\n";
+
+if ( $exitCode != 0 || !-f $tmpfile || -s $tmpfile == 0 ) {
+    exit($exitCode);
+}
+my $ffmpegCmd = sprintf(
+    '"%s" -loglevel error -acodec copy -i "%s" "%s"',
+    $config->{'FfmpegPath'},
+    $tmpfile, $outfile
+);
+system($ffmpegCmd);
+unlink($tmpfile);
+my $mp4tagsCmd = sprintf(
+    '"%s" -song "%s" -genre "radio" -year %d %s',
+    $config->{'Mp4tagsPath'},
+    $title, $t->year, $outfile
+);
+system($mp4tagsCmd);
 
 # EOF

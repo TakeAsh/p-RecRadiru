@@ -1,7 +1,8 @@
 ---
 ExtendSeconds: 15
+FfmpegPath: /usr/bin/ffmpeg
+Mp4tagsPath: /usr/bin/mp4tags
 RadiruConfig: http://www3.nhk.or.jp/netradio/app/config_pc.xml
 RtmpDumpPath: /usr/bin/rtmpdump
 SavePath: .
 SwfVfy: http://www3.nhk.or.jp/netradio/files/swf/rtmpe_ver2015.swf
-
