@@ -88,13 +88,13 @@ my $ffmpegCmd = sprintf(
     $config->{'FfmpegPath'},
     $tmpfile, $outfile
 );
-system($ffmpegCmd);
+system( encode( $charset, $ffmpegCmd ) );
 unlink($tmpfile);
 my $mp4tagsCmd = sprintf(
     '"%s" -song "%s" -genre "radio" -year %d %s',
     $config->{'Mp4tagsPath'},
     $title, $t->year, $outfile
 );
-system($mp4tagsCmd);
+system( encode( $charset, $mp4tagsCmd ) );
 
 # EOF
