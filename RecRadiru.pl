@@ -14,7 +14,7 @@ use Time::Piece;
 
 $YAML::Syck::ImplicitUnicode = 1;
 
-my $charset = "utf-8";    # utf-8, CP932
+my $charset = 'utf-8';    # utf-8, CP932
 
 binmode( STDIN,  ":encoding($charset)" );
 binmode( STDOUT, ":encoding($charset)" );
@@ -67,12 +67,12 @@ if ( $duration <= 0 || !grep( /^$area$/, @areas ) || !grep( /^$channel$/, @chann
 my $postfix = $t->ymd('') . '_' . $t->hms('');
 my $outfile = "${outdir}/${title}_${postfix}.m4a";
 my $cmd     = sprintf(
-    '%s --rtmp %s --swfVfy %s --live --stop %d -o "%s"',
+    '"%s" --rtmp %s --swfVfy %s --live --stop %d -o "%s"',
     $config->{'RtmpDumpPath'},
     $streamUrl->{$area}{$channel},
     $config->{'SwfVfy'}, $duration * 60 + $config->{'ExtendSeconds'}, $outfile
 );
-system($cmd);
+system( encode( $charset, $cmd ) );
 my $exitCode = $? >> 8;
 print $exitCode == 0
     ? "Success\n"
