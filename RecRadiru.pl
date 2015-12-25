@@ -69,7 +69,7 @@ my $tmpfile = "${outdir}/.${title}_${postfix}.m4a";
 my $outfile = "${outdir}/${title}_${postfix}.m4a";
 
 my $rtmpDumpCmd = sprintf(
-    '"%s" --rtmp %s --swfVfy %s --live --stop %d -o "%s"',
+    '"%s" --rtmp %s --swfVfy %s --live --stop %d --quiet -o "%s"',
     $config->{'RtmpDumpPath'},
     $streamUrl->{$area}{$channel},
     $config->{'SwfVfy'}, $duration * 60 + $config->{'ExtendSeconds'}, $tmpfile
