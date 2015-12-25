@@ -11,6 +11,7 @@ use YAML::Syck qw( Load LoadFile Dump DumpFile );
 use LWP::UserAgent;
 use XML::Simple qw(:strict);
 use Time::Piece;
+use File::Copy;
 
 $YAML::Syck::ImplicitUnicode = 1;
 
@@ -83,6 +84,10 @@ print $exitCode == 0
 if ( $exitCode != 0 || !-f $tmpfile || -s $tmpfile == 0 ) {
     exit($exitCode);
 }
+if ( !$config->{'FfmpegPath'} ) {
+    move( $tmpfile, $outfile );
+    exit;
+}
 my $ffmpegCmd = sprintf(
     '"%s" -loglevel error -acodec copy -i "%s" "%s"',
     $config->{'FfmpegPath'},
@@ -90,6 +95,9 @@ my $ffmpegCmd = sprintf(
 );
 system( encode( $charset, $ffmpegCmd ) );
 unlink($tmpfile);
+if ( !$config->{'Mp4tagsPath'} ) {
+    exit;
+}
 my $mp4tagsCmd = sprintf(
     '"%s" -song "%s" -genre "radio" -year %d %s',
     $config->{'Mp4tagsPath'},
