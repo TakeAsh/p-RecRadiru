@@ -10,4 +10,11 @@ RadiruConfig: http://www3.nhk.or.jp/netradio/app/config_pc.xml
 RtmpDumpPath: /usr/bin/rtmpdump
 SavePath: .
 SwfVfy: http://www3.nhk.or.jp/netradio/files/swf/rtmpe_ver2015.swf
+RadiruInfo:
+  Uri: http://www2.nhk.or.jp/hensei/api/noa.cgi
+  Params:
+    c: 3
+    mb: 1
+    wide: 1
+    mode: xml
 

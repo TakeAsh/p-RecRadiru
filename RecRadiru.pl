@@ -9,6 +9,7 @@ use Encode;
 use FindBin;
 use YAML::Syck qw( Load LoadFile Dump DumpFile );
 use LWP::UserAgent;
+use URI;
 use XML::Simple qw(:strict);
 use Time::Piece;
 use File::Copy;
@@ -68,6 +69,13 @@ if ( $duration <= 0 || !grep( /^$area$/, @areas ) || !grep( /^$channel$/, @chann
 my $postfix = $t->ymd('') . '_' . $t->hms('');
 my $tmpfile = "${outdir}/.${title}_${postfix}.m4a";
 my $outfile = "${outdir}/${title}_${postfix}.m4a";
+
+my $infoUrl    = URI->new( $config->{'RadiruInfo'}{'Uri'} );
+my $infoParams = $config->{'RadiruInfo'}{'Params'};
+$infoParams->{'area'} = $streamUrl->{$area}{'apikey'};
+$infoUrl->query_form($infoParams);
+my $infofile = "${outdir}/${title}_${postfix}." . $infoParams->{'mode'};
+$ua->request( HTTP::Request->new( GET => $infoUrl ), $infofile );
 
 my $rtmpDumpCmd = sprintf(
     '"%s" --rtmp %s --swfVfy %s --live --stop %d --quiet -o "%s"',
