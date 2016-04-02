@@ -67,53 +67,53 @@ if ( $duration <= 0 || !grep( /^$area$/, @areas ) || !grep( /^$channel$/, @chann
     die($helpMessage);
 }
 my $endTime = $duration * 60 + $config->{'ExtendSeconds'} + time();
-while((my $restDuration = $endTime - time())>0){
-my $postfix = $t->ymd('') . '_' . $t->hms('');
-my $tmpfile = "${outdir}/.${title}_${postfix}.m4a";
-my $outfile = "${outdir}/${title}_${postfix}.m4a";
+while ( ( my $restDuration = $endTime - time() ) > 0 ) {
+    my $postfix = $t->ymd('') . '_' . $t->hms('');
+    my $tmpfile = "${outdir}/.${title}_${postfix}.m4a";
+    my $outfile = "${outdir}/${title}_${postfix}.m4a";
 
-my $infoUrl    = URI->new( $config->{'RadiruInfo'}{'Uri'} );
-my $infoParams = $config->{'RadiruInfo'}{'Params'};
-$infoParams->{'area'} = $streamUrl->{$area}{'apikey'};
-$infoUrl->query_form($infoParams);
-my $infofile = "${outdir}/${title}_${postfix}." . $infoParams->{'mode'};
-$ua->request( HTTP::Request->new( GET => $infoUrl ), $infofile );
+    my $infoUrl    = URI->new( $config->{'RadiruInfo'}{'Uri'} );
+    my $infoParams = $config->{'RadiruInfo'}{'Params'};
+    $infoParams->{'area'} = $streamUrl->{$area}{'apikey'};
+    $infoUrl->query_form($infoParams);
+    my $infofile = "${outdir}/${title}_${postfix}." . $infoParams->{'mode'};
+    $ua->request( HTTP::Request->new( GET => $infoUrl ), $infofile );
 
-my $rtmpDumpCmd = sprintf(
-    '"%s" --rtmp %s --swfVfy %s --live --stop %d --quiet -o "%s"',
-    $config->{'RtmpDumpPath'},
-    $streamUrl->{$area}{$channel},
-    $config->{'SwfVfy'}, $restDuration, $tmpfile
-);
-system( encode( $charset, $rtmpDumpCmd ) );
-my $exitCode = $? >> 8;
-print $exitCode == 0
-    ? "Success\n"
-    : "Failed: $exitCode\n";
+    my $rtmpDumpCmd = sprintf(
+        '"%s" --rtmp %s --swfVfy %s --live --stop %d --quiet -o "%s"',
+        $config->{'RtmpDumpPath'},
+        $streamUrl->{$area}{$channel},
+        $config->{'SwfVfy'}, $restDuration, $tmpfile
+    );
+    system( encode( $charset, $rtmpDumpCmd ) );
+    my $exitCode = $? >> 8;
+    print $exitCode == 0
+        ? "Success\n"
+        : "Failed: $exitCode\n";
 
-if ( $exitCode != 0 || !-f $tmpfile || -s $tmpfile == 0 ) {
-    next;
-}
-if ( !$config->{'FfmpegPath'} ) {
-    move( $tmpfile, $outfile );
-    next;
-}
-my $ffmpegCmd = sprintf(
-    '"%s" -loglevel error -acodec copy -i "%s" "%s"',
-    $config->{'FfmpegPath'},
-    $tmpfile, $outfile
-);
-system( encode( $charset, $ffmpegCmd ) );
-unlink($tmpfile);
-if ( !$config->{'Mp4tagsPath'} ) {
-    next;
-}
-my $mp4tagsCmd = sprintf(
-    '"%s" -song "%s" -genre "radio" -year %d %s',
-    $config->{'Mp4tagsPath'},
-    $title, $t->year, $outfile
-);
-system( encode( $charset, $mp4tagsCmd ) );
+    if ( $exitCode != 0 || !-f $tmpfile || -s $tmpfile == 0 ) {
+        next;
+    }
+    if ( !$config->{'FfmpegPath'} ) {
+        move( $tmpfile, $outfile );
+        next;
+    }
+    my $ffmpegCmd = sprintf(
+        '"%s" -loglevel error -acodec copy -i "%s" "%s"',
+        $config->{'FfmpegPath'},
+        $tmpfile, $outfile
+    );
+    system( encode( $charset, $ffmpegCmd ) );
+    unlink($tmpfile);
+    if ( !$config->{'Mp4tagsPath'} ) {
+        next;
+    }
+    my $mp4tagsCmd = sprintf(
+        '"%s" -song "%s" -genre "radio" -year %d %s',
+        $config->{'Mp4tagsPath'},
+        $title, $t->year, $outfile
+    );
+    system( encode( $charset, $mp4tagsCmd ) );
 }
 
 # EOF
