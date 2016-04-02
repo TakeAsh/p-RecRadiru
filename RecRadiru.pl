@@ -66,6 +66,8 @@ my $outdir   = $argv[4] || $config->{'SavePath'} || $ENV{'HOME'} || ".";
 if ( $duration <= 0 || !grep( /^$area$/, @areas ) || !grep( /^$channel$/, @channels ) ) {
     die($helpMessage);
 }
+my $endTime = $duration * 60 + $config->{'ExtendSeconds'} + time();
+while((my $restDuration = $endTime - time())>0){
 my $postfix = $t->ymd('') . '_' . $t->hms('');
 my $tmpfile = "${outdir}/.${title}_${postfix}.m4a";
 my $outfile = "${outdir}/${title}_${postfix}.m4a";
@@ -81,7 +83,7 @@ my $rtmpDumpCmd = sprintf(
     '"%s" --rtmp %s --swfVfy %s --live --stop %d --quiet -o "%s"',
     $config->{'RtmpDumpPath'},
     $streamUrl->{$area}{$channel},
-    $config->{'SwfVfy'}, $duration * 60 + $config->{'ExtendSeconds'}, $tmpfile
+    $config->{'SwfVfy'}, $restDuration, $tmpfile
 );
 system( encode( $charset, $rtmpDumpCmd ) );
 my $exitCode = $? >> 8;
@@ -90,11 +92,11 @@ print $exitCode == 0
     : "Failed: $exitCode\n";
 
 if ( $exitCode != 0 || !-f $tmpfile || -s $tmpfile == 0 ) {
-    exit($exitCode);
+    next;
 }
 if ( !$config->{'FfmpegPath'} ) {
     move( $tmpfile, $outfile );
-    exit;
+    next;
 }
 my $ffmpegCmd = sprintf(
     '"%s" -loglevel error -acodec copy -i "%s" "%s"',
@@ -104,7 +106,7 @@ my $ffmpegCmd = sprintf(
 system( encode( $charset, $ffmpegCmd ) );
 unlink($tmpfile);
 if ( !$config->{'Mp4tagsPath'} ) {
-    exit;
+    next;
 }
 my $mp4tagsCmd = sprintf(
     '"%s" -song "%s" -genre "radio" -year %d %s',
@@ -112,5 +114,6 @@ my $mp4tagsCmd = sprintf(
     $title, $t->year, $outfile
 );
 system( encode( $charset, $mp4tagsCmd ) );
+}
 
 # EOF
