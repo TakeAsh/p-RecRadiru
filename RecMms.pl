@@ -56,54 +56,54 @@ if ( !defined($pid) ) {
 if ( !$pid ) {
 
     # Child Process
-while ( ( my $restDuration = $endTime - time() ) > 0 ) {
-my $postfix = $t->ymd('') . '_' . $t->hms('');
-my $tmpfile = "${outdir}/.${title}_${postfix}.asf";
-my $mplayerCmd = sprintf(
-    '"%s" "%s" -dumpstream -dumpfile "%s" < /dev/null',
-    $config->{'MplayerPath'},
-    $config->{'Channels'}{$channel}, $tmpfile
-);
-    system( encode( $charset, $mplayerCmd ) );
-}
+    while ( ( my $restDuration = $endTime - time() ) > 0 ) {
+        my $postfix    = $t->ymd('') . '_' . $t->hms('');
+        my $tmpfile    = "${outdir}/.${title}_${postfix}.asf";
+        my $mplayerCmd = sprintf(
+            '"%s" "%s" -dumpstream -dumpfile "%s" < /dev/null',
+            $config->{'MplayerPath'},
+            $config->{'Channels'}{$channel}, $tmpfile
+        );
+        system( encode( $charset, $mplayerCmd ) );
+    }
 }
 
 # Parent Process
 sleep( $duration * 60 + $config->{'ExtendSeconds'} );
 kill( 'KILL', $pid );
-chdir(${outdir});
+chdir( ${outdir} );
 my @tmpfiles = glob(".${title}_*.asf");
 if ( !@tmpfiles ) {
     exit(1);
 }
 if ( !$config->{'FfmpegPath'} ) {
-    foreach my $tmpfile (@tmpfiles){
-        my $outfile = substr($tmpfile, 1);
-    move( $tmpfile, $outfile );
+    foreach my $tmpfile (@tmpfiles) {
+        my $outfile = substr( $tmpfile, 1 );
+        move( $tmpfile, $outfile );
     }
     exit;
 }
-foreach my $tmpfile (@tmpfiles){
-    my $outfile = substr($tmpfile, 1);
-my $ffmpegCmd = sprintf(
-    '"%s" -loglevel error -vcodec copy -acodec copy -i "%s" "%s"',
-    $config->{'FfmpegPath'},
-    $tmpfile, $outfile
-);
-system( encode( $charset, $ffmpegCmd ) );
-unlink($tmpfile);
+foreach my $tmpfile (@tmpfiles) {
+    my $outfile = substr( $tmpfile, 1 );
+    my $ffmpegCmd = sprintf(
+        '"%s" -loglevel error -vcodec copy -acodec copy -i "%s" "%s"',
+        $config->{'FfmpegPath'},
+        $tmpfile, $outfile
+    );
+    system( encode( $charset, $ffmpegCmd ) );
+    unlink($tmpfile);
 }
 if ( !$config->{'Mp4tagsPath'} ) {
     exit;
 }
-foreach my $tmpfile (@tmpfiles){
-    my $outfile = substr($tmpfile, 1);
-my $mp4tagsCmd = sprintf(
-    '"%s" -song "%s" -genre "radio" -year %d %s',
-    $config->{'Mp4tagsPath'},
-    $title, $t->year, $outfile
-);
-system( encode( $charset, $mp4tagsCmd ) );
+foreach my $tmpfile (@tmpfiles) {
+    my $outfile = substr( $tmpfile, 1 );
+    my $mp4tagsCmd = sprintf(
+        '"%s" -song "%s" -genre "radio" -year %d %s',
+        $config->{'Mp4tagsPath'},
+        $title, $t->year, $outfile
+    );
+    system( encode( $charset, $mp4tagsCmd ) );
 }
 
 # EOF
