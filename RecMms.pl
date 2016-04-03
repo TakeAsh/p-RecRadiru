@@ -46,15 +46,7 @@ my $outdir   = $argv[3] || $config->{'SavePath'} || $ENV{'HOME'} || ".";
 if ( $duration <= 0 || !grep( /^$channel$/, @channels ) ) {
     die($helpMessage);
 }
-my $postfix = $t->ymd('') . '_' . $t->hms('');
-my $tmpfile = "${outdir}/.${title}_${postfix}.asf";
-my $outfile = "${outdir}/${title}_${postfix}.asf";
-
-my $mplayerCmd = sprintf(
-    '"%s" "%s" -dumpstream -dumpfile "%s" < /dev/null',
-    $config->{'MplayerPath'},
-    $config->{'Channels'}{$channel}, $tmpfile
-);
+my $endTime = $duration * 60 + $config->{'ExtendSeconds'} + time();
 
 my $pid = fork;
 if ( !defined($pid) ) {
@@ -64,19 +56,35 @@ if ( !defined($pid) ) {
 if ( !$pid ) {
 
     # Child Process
+while ( ( my $restDuration = $endTime - time() ) > 0 ) {
+my $postfix = $t->ymd('') . '_' . $t->hms('');
+my $tmpfile = "${outdir}/.${title}_${postfix}.asf";
+my $mplayerCmd = sprintf(
+    '"%s" "%s" -dumpstream -dumpfile "%s" < /dev/null',
+    $config->{'MplayerPath'},
+    $config->{'Channels'}{$channel}, $tmpfile
+);
     system( encode( $charset, $mplayerCmd ) );
+}
 }
 
 # Parent Process
 sleep( $duration * 60 + $config->{'ExtendSeconds'} );
 kill( 'KILL', $pid );
-if ( !-f $tmpfile || -s $tmpfile == 0 ) {
+chdir(${outdir});
+my @tmpfiles = glob(".${title}_*.asf");
+if ( !@tmpfiles ) {
     exit(1);
 }
 if ( !$config->{'FfmpegPath'} ) {
+    foreach my $tmpfile (@tmpfiles){
+        my $outfile = substr($tmpfile, 1);
     move( $tmpfile, $outfile );
+    }
     exit;
 }
+foreach my $tmpfile (@tmpfiles){
+    my $outfile = substr($tmpfile, 1);
 my $ffmpegCmd = sprintf(
     '"%s" -loglevel error -vcodec copy -acodec copy -i "%s" "%s"',
     $config->{'FfmpegPath'},
@@ -84,14 +92,18 @@ my $ffmpegCmd = sprintf(
 );
 system( encode( $charset, $ffmpegCmd ) );
 unlink($tmpfile);
+}
 if ( !$config->{'Mp4tagsPath'} ) {
     exit;
 }
+foreach my $tmpfile (@tmpfiles){
+    my $outfile = substr($tmpfile, 1);
 my $mp4tagsCmd = sprintf(
     '"%s" -song "%s" -genre "radio" -year %d %s',
     $config->{'Mp4tagsPath'},
     $title, $t->year, $outfile
 );
 system( encode( $charset, $mp4tagsCmd ) );
+}
 
 # EOF
