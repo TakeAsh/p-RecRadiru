@@ -1,6 +1,3 @@
----
-ExtendSeconds: 15
-RadiruConfig: http://www3.nhk.or.jp/netradio/app/config_pc.xml
-RtmpDumpPath: C:/Program Files (x86)/RTMPDump/rtmpdump.exe
+--- 
+FfmpegPath: C:/Program Files/FFmpeg/ffmpeg.exe
 SavePath: .
-SwfVfy: http://www3.nhk.or.jp/netradio/files/swf/rtmpe_ver2015.swf

@@ -1,20 +1,13 @@
----
-Channels:
+--- 
+Channels: 
   chofu-fm: http://hdv3.nkansai.tv/chofu
   fmsagami: mms://122.29.249.8/fmsagami_simul
-ExtendSeconds: 15
-FfmpegPath: /usr/bin/ffmpeg
-Mp4tagsPath: /usr/bin/mp4tags
-MplayerPath: /usr/bin/mplayer
-RadiruConfig: http://www3.nhk.or.jp/netradio/app/config_pc_2016.xml
-RtmpDumpPath: /usr/bin/rtmpdump
-SavePath: .
-SwfVfy: http://www3.nhk.or.jp/netradio/files/swf/rtmpe_ver2015.swf
-RadiruInfo:
-  Uri: http://www2.nhk.or.jp/hensei/api/noa.cgi
-  Params:
+ExtendSeconds: 10
+RadiruConfig: http://www.nhk.or.jp/radio/config/config_web.xml
+RadiruInfo: 
+  Params: 
     c: 3
     mb: 1
-    wide: 1
     mode: xml
-
+    wide: 1
+  Uri: http://www2.nhk.or.jp/hensei/api/noa.cgi
