@@ -151,7 +151,7 @@ rtmpdump \
          --flv "/tmp/${channel}_${date}"
 
 #ffmpeg -loglevel quiet -y -i "/tmp/${channel}_${date}" -acodec libmp3lame -ab 128k "${outdir}/${PREFIX}_${date}.mp3"
-ffmpeg -loglevel error -y -acodec copy -i "/tmp/${channel}_${date}" "${outdir}/${PREFIX}_${date}.m4a"
+ffmpeg -loglevel error -y -i "/tmp/${channel}_${date}" -acodec copy "${outdir}/${PREFIX}_${date}.m4a"
 if [ $? = 0 ]; then
   rm -f "/tmp/${channel}_${date}"
 fi
