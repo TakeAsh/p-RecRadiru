@@ -136,6 +136,8 @@ url_parts=(`echo ${stream_url} | perl -pe 's!^(.*)://(.*?)/(.*)/(.*?)$/!$1://$2 
 
 rm -f ${channel}.xml
 
+tmpfile="/tmp/${channel}_${date}.m4a"
+
 #
 # rtmpdump
 #
@@ -148,10 +150,9 @@ rtmpdump \
          -C S:"" -C S:"" -C S:"" -C S:$authtoken \
          --live \
          --stop ${DURATION} \
-         --flv "/tmp/${channel}_${date}.m4a"
+         --flv "${tmpfile}"
 
-#ffmpeg -loglevel quiet -y -i "/tmp/${channel}_${date}" -acodec libmp3lame -ab 128k "${outdir}/${PREFIX}_${date}.mp3"
-ffmpeg -loglevel error -y -i "/tmp/${channel}_${date}.m4a" -c copy -movflags faststart "${outdir}/${PREFIX}_${date}.m4a"
+ffmpeg -loglevel error -y -i "${tmpfile}" -c copy -movflags faststart "${outdir}/${PREFIX}_${date}.m4a"
 if [ $? = 0 ]; then
-  rm -f "/tmp/${channel}_${date}.m4a"
+  rm -f "${tmpfile}"
 fi
