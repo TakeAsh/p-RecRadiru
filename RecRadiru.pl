@@ -5,23 +5,25 @@
 use strict;
 use warnings;
 use utf8;
+use feature qw(say);
 use Encode;
-use FindBin;
+use FindBin::libs;
 use YAML::Syck qw(Load LoadFile Dump DumpFile);
+use JSON::XS;
 use LWP::UserAgent;
 use URI;
 use XML::Simple qw(:strict);
 use Time::Piece;
+use Try::Tiny;
+use Term::Encoding qw(term_encoding);
+use open ':std' => ( $^O eq 'MSWin32' ? ':locale' : ':utf8' );
 
 $YAML::Syck::ImplicitUnicode   = 1;
 $XML::Simple::PREFERRED_PARSER = 'XML::Parser';
 
-my $charset = 'utf-8';    # utf-8, CP932
+my $charset = $^O eq 'MSWin32' ? 'CP932' : 'UTF-8';
 
-binmode( STDIN,  ":encoding($charset)" );
-binmode( STDOUT, ":encoding($charset)" );
-binmode( STDERR, ":encoding($charset)" );
-
+my $json     = JSON::XS->new->utf8(0)->allow_nonref(1);
 my @channels = qw( r1 r2 fm );
 
 my $path       = $FindBin::RealBin . '/';
@@ -42,7 +44,7 @@ if (0) {
 my $ua       = LWP::UserAgent->new;
 my $response = $ua->get( $config->{'RadiruConfig'} );
 if ( !$response->is_success ) {
-    die( $response->status_line . "\n" );
+    die( $response->status_line );
 }
 my $radiruConfig = XMLin(
     $response->decoded_content,
@@ -52,8 +54,9 @@ my $radiruConfig = XMLin(
 );
 my $streamUrl = $radiruConfig->{'stream_url'};
 
-my @areas = keys( %{$streamUrl} );
-my %apikeyToArea = map { $streamUrl->{$_}{'apikey'} => $_ } @areas;
+my @areas         = keys( %{$streamUrl} );
+my %apikeyToArea  = map { $streamUrl->{$_}{'apikey'} => $_ } @areas;
+my %areaToAreaKey = map { $_ => $streamUrl->{$_}{'areakey'} } @areas;
 my $helpMessage
     = "usage: $0 <area> <channel> <duration> [<title>] [<outdir>]\narea: "
     . join( " | ", map { $apikeyToArea{$_} } sort( keys(%apikeyToArea) ) )
@@ -73,6 +76,7 @@ my $outdir   = $argv[4] || $host->{'SavePath'} || $ENV{'HOME'} || ".";
 if ( $duration <= 0 || !grep( /^$area$/, @areas ) || !grep( /^$channel$/, @channels ) ) {
     die($helpMessage);
 }
+my $areaKey = $areaToAreaKey{$area};
 my $endTime = $duration * 60 + time();
 while ( ( my $restDuration = $endTime - time() ) > 0 ) {
     my $t       = localtime;
@@ -80,12 +84,12 @@ while ( ( my $restDuration = $endTime - time() ) > 0 ) {
     my $outfile = "${outdir}/${title}_${postfix}.m4a";
 
     # 番組情報ダウンロード
-    my $infoUrl    = URI->new( $config->{'RadiruInfo'}{'Uri'} );
-    my $infoParams = $config->{'RadiruInfo'}{'Params'};
-    $infoParams->{'area'} = $streamUrl->{$area}{'apikey'};
-    $infoUrl->query_form($infoParams);
-    my $infofile = "${outdir}/${title}_${postfix}." . $infoParams->{'mode'};
-    $ua->request( HTTP::Request->new( GET => $infoUrl ), $infofile );
+    my $infoUrl = 'https:' . $radiruConfig->{'url_program_noa'};
+    $infoUrl =~ s/\{area\}/$areaKey/;
+    my $res_info = $ua->get($infoUrl);
+    my $info
+        = try { $json->decode( $res_info->decoded_content ) } catch { $res_info->decoded_content };
+    DumpFile( "${outdir}/${title}_${postfix}.yml", $info );
 
     # m4a ダウンロード
     my $ffmpegCmd = sprintf(
@@ -108,7 +112,7 @@ while ( ( my $restDuration = $endTime - time() ) > 0 ) {
 
     # ダウンロード時間が再生時間より短いので終了時刻前にDL完了する。
     # 開始時10秒分, 終了時10秒分待機する。
-    sleep( 10 + 10 );
+    sleep( 10 + $config->{'ExtendSeconds'} );
 }
 
 # EOF

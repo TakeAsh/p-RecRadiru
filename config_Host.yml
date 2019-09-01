@@ -3,4 +3,4 @@ FfmpegPath: /usr/bin/ffmpeg
 Mp4tagsPath: /usr/bin/mp4tags
 MplayerPath: /usr/bin/mplayer
 RtmpDumpPath: /usr/bin/rtmpdump
-SavePath: .
+SavePath: /home/Shared/Video

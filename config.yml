@@ -3,11 +3,4 @@ Channels:
   chofu-fm: http://hdv3.nkansai.tv/chofu
   fmsagami: mms://122.29.249.8/fmsagami_simul
 ExtendSeconds: 10
-RadiruConfig: http://www.nhk.or.jp/radio/config/config_web.xml
-RadiruInfo: 
-  Params: 
-    c: 3
-    mb: 1
-    mode: xml
-    wide: 1
-  Uri: http://www2.nhk.or.jp/hensei/api/noa.cgi
+RadiruConfig: https://www.nhk.or.jp/radio/config/config_web.xml
