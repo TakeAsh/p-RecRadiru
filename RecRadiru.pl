@@ -79,9 +79,10 @@ if ( $duration <= 0 || !grep( /^$area$/, @areas ) || !grep( /^$channel$/, @chann
 my $areaKey = $areaToAreaKey{$area};
 my $endTime = $duration * 60 + time();
 while ( ( my $restDuration = $endTime - time() ) > 0 ) {
-    my $t       = localtime;
-    my $postfix = $t->ymd('') . '_' . $t->hms('');
-    my $outfile = "${outdir}/${title}_${postfix}.m4a";
+    my $t        = localtime;
+    my $postfix  = $t->ymd('') . '_' . $t->hms('');
+    my $workfile = "${outdir}/.${title}_${postfix}.m4a";
+    my $outfile  = "${outdir}/${title}_${postfix}.m4a";
 
     # 番組情報ダウンロード
     my $infoUrl = 'https:' . $radiruConfig->{'url_program_noa'};
@@ -96,7 +97,7 @@ while ( ( my $restDuration = $endTime - time() ) > 0 ) {
         '"%s" -y -i "%s" -bsf:a aac_adtstoasc -c copy -t %d "%s"',
         $host->{'FfmpegPath'},
         $streamUrl->{$area}{ $channel . 'hls' },
-        $restDuration + $config->{'ExtendSeconds'}, $outfile
+        $restDuration + $config->{'ExtendSeconds'}, $workfile
     );
     system( encode( $charset, $ffmpegCmd ) );
 
@@ -105,10 +106,12 @@ while ( ( my $restDuration = $endTime - time() ) > 0 ) {
         my $mp4tagsCmd = sprintf(
             '"%s" -song "%s" -genre "radio" -year %d %s',
             $host->{'Mp4tagsPath'},
-            $title, $t->year, $outfile
+            $title, $t->year, $workfile
         );
         system( encode( $charset, $mp4tagsCmd ) );
     }
+
+    rename( $workfile, $outfile );
 
     # ダウンロード時間が再生時間より短いので終了時刻前にDL完了する。
     # 開始時10秒分, 終了時10秒分待機する。
