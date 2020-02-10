@@ -1,6 +1,9 @@
---- 
-Channels: 
+---
+Channels:
   chofu-fm: http://hdv3.nkansai.tv/chofu
   fmsagami: mms://122.29.249.8/fmsagami_simul
 ExtendSeconds: 10
 RadiruConfig: https://www.nhk.or.jp/radio/config/config_web.xml
+SavePath:
+  MSWin32: ~
+  linux: ~

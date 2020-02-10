@@ -27,19 +27,16 @@ my $charset = $^O eq 'MSWin32' ? 'CP932' : 'UTF-8';
 my $json     = JSON::XS->new->utf8(0)->allow_nonref(1);
 my @channels = qw( r1 r2 fm );
 
-my $path       = $FindBin::RealBin . '/';
-my $configYaml = $path . 'config.yml';
+my $configYaml = "${FindBin::RealBin}/config.yml";
 my $config     = LoadFile($configYaml) or die("$configYaml: $!");
-my $hostYaml   = $path . 'config_Host.yml';
-my $host       = LoadFile($hostYaml) or die("$hostYaml: $!");
 my $ffmpeg     = can_run('ffmpeg') or die("ffmpeg is not found");
 my $mp4tags    = can_run('mp4tags');
 
 # YAML ファイルの整形
 if (0) {
-    foreach my $f ( glob("config*") ) {
-        print "$f\n";
-        DumpFile( $path . $f, LoadFile( $path . $f ) );
+    foreach my $f ( glob("${FindBin::RealBin}/config*") ) {
+        say "$f";
+        DumpFile( $f, LoadFile($f) );
     }
     exit;
 }
@@ -75,7 +72,7 @@ my $area     = $argv[0];
 my $channel  = $argv[1];
 my $duration = $argv[2];
 my $title    = $argv[3] || "${area}_${channel}";
-my $outdir   = $argv[4] || $host->{'SavePath'} || $ENV{'HOME'} || ".";
+my $outdir   = $argv[4] || $config->{'SavePath'}{$^O} || $ENV{'HOME'} || ".";
 if ( $duration <= 0 || !grep( /^$area$/, @areas ) || !grep( /^$channel$/, @channels ) ) {
     die($helpMessage);
 }
